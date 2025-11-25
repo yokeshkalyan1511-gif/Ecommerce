@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Men's New Arrivals</title>
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body { font-family: Arial; margin: 0; background: #f8f8f8; }
+    header { background: black; color: white; padding: 15px 20px;
+             display: flex; justify-content: space-between; }
+    .icons i { color: white; margin-left: 15px; cursor: pointer; }
+    .container { max-width: 1200px; margin: auto; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+
+    .card { background: white; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 2px 5px #0002; cursor: pointer; }
+    .card img { width: 100%; height: 320px; object-fit: cover; }
+
+    button { background: black; color: white; padding: 10px;
+             border: none; width: 100%; cursor: pointer; border-radius: 5px; }
+    button:hover { background: #333; }
+
+    /* Product Details Frame */
+    #productPage { display: none; padding: 20px; }
+    #productPage img { width: 400px; border-radius: 10px; }
+    .product-layout { display: flex; gap: 30px; }
+
+    /* Cart Sidebar */
+    #cartPanel {
+      position: fixed; top: 0; right: -400px; width: 350px; height: 100%;
+      background: white; box-shadow: -2px 0 8px #0004; padding: 20px;
+      transition: .3s; overflow-y: auto;
+    }
+    #cartPanel.active { right: 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Men's New Arrivals</h1>
+  <div class="icons">
+    <i class="fa-solid fa-cart-shopping" id="cartIcon"></i>
+  </div>
+</header>
+
+<!-- PRODUCT LIST -->
+<div class="container" id="homePage">
+  <h2>Latest Collection</h2>
+  <div class="grid" id="productGrid"></div>
+</div>
+
+<!-- PRODUCT DETAILS PAGE -->
+<div class="container" id="productPage">
+  <button onclick="goBack()" style="width:auto; margin-bottom:20px;">⬅ Back</button>
+  <div class="product-layout">
+    <img id="detailImage">
+    <div>
+      <h2 id="detailName"></h2>
+      <h3 id="detailPrice"></h3>
+      <button onclick="addDetailToCart()">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div id="cartPanel">
+  <button style="background:red; width:auto;" onclick="closeCart()">Close</button>
+  <h3>Your Cart</h3>
+  <div id="cartItems"></div>
+  <h3 id="cartTotal"></h3>
+</div>
+
+<script>
+
+// PRODUCT DATA
+const products = [
+  {id: 1, name: "Denim Jacket", price: 7999, image: "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/resize-w:360/000000410521676001/vjXzDkb6fC-410521676001_1.jpg"},
+  {id: 2, name: "Casual Shirt", price: 3499, image: "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/original/000000410521621005/_QgQj4vYY-410521621005_1_1.jpg"},
+  {id: 3, name: "Slim Fit Jeans", price: 4999, image: "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/resize-w:360/000000410521542002/JxTrjrpTjIl-410521542002_1.jpg"},
+  {id: 4, name: "Leather Sneakers", price: 6499, image: "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/resize-w:360/000000410521543001/GD5b1G8ijDU-410521543001_3.jpg"},
+  {id: 5, name: "Black Hoodie", price: 5299, image: "https://cdn.fynd.com/v2/falling-surf-7c8bb8/fyprod/wrkr/products/pictures/item/free/resize-w:360/000000410521697003/B8QnErcqiqS-410521697003_2_1.jpg"}
+];
+
+let cart = [];
+
+// LOAD PRODUCTS
+const grid = document.getElementById("productGrid");
+products.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <img src="${p.image}">
+    <div style="padding:15px;">
+      <h3>${p.name}</h3>
+      <p>₹${p.price.toLocaleString()}</p>
+      <button onclick="addToCart(${p.id}); event.stopPropagation();">Add to Cart</button>
+    </div>
+  `;
+  card.onclick = () => openProduct(p.id);
+  grid.appendChild(card);
+});
+
+// OPEN PRODUCT DETAILS
+function openProduct(id) {
+  const p = products.find(x => x.id === id);
+  document.getElementById("detailImage").src = p.image;
+  document.getElementById("detailName").textContent = p.name;
+  document.getElementById("detailPrice").textContent = "₹" + p.price.toLocaleString();
+
+  window.selectedProduct = p;
+
+  document.getElementById("homePage").style.display = "none";
+  document.getElementById("productPage").style.display = "block";
+}
+
+// BACK BUTTON
+function goBack() {
+  document.getElementById("productPage").style.display = "none";
+  document.getElementById("homePage").style.display = "block";
+}
+
+// ADD TO CART (HOME PAGE)
+function addToCart(id) {
+  const p = products.find(x => x.id === id);
+  cart.push(p);
+  updateCart();
+}
+
+// ADD TO CART (DETAIL PAGE)
+function addDetailToCart() {
+  cart.push(window.selectedProduct);
+  updateCart();
+}
+
+// UPDATE CART PANEL
+function updateCart() {
+  const c = document.getElementById("cartItems");
+  c.innerHTML = "";
+
+  let total = 0;
+  cart.forEach(item => {
+    total += item.price;
+    c.innerHTML += `
+      <p>${item.name} - ₹${item.price.toLocaleString()}</p>
+    `;
+  });
+
+  document.getElementById("cartTotal").textContent = "Total: ₹" + total.toLocaleString();
+}
+
+// CART OPEN/CLOSE
+document.getElementById("cartIcon").onclick = () => {
+  document.getElementById("cartPanel").classList.add("active");
+}
+function closeCart() {
+  document.getElementById("cartPanel").classList.remove("active");
+}
+
+</script>
+
+</body>
+</html>
