@@ -36,6 +36,17 @@
       transition: .3s; overflow-y: auto;
     }
     #cartPanel.active { right: 0; }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      header { padding: 10px 15px; }
+      .container { padding: 10px; }
+      .grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+      .card img { height: 250px; }
+      #productPage img { width: 100%; max-width: 300px; }
+      .product-layout { flex-direction: column; gap: 20px; }
+      #cartPanel { width: 100%; right: -100%; }
+    }
   </style>
 </head>
 <body>
